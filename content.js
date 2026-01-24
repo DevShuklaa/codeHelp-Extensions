@@ -272,7 +272,7 @@ if (!document.getElementById("codeHelp-root")) {
 
 
 
-  const codeHelp_API = "https://codehelp-backened.onrender.com";
+  const codeHelp_API = "https://codehelp-backened.onrender.com/api/ai";
 
   const ENDPOINTS = {
     explain: "/explain",
