@@ -36,11 +36,11 @@ if (!document.getElementById("codeHelp-root")) {
 
 :host {
   --bg-main: #0B101A;
-  --bg-panel: #11151c;
-  --bg-box: #161c24;
-  --bg-header: #1c232d;
+  --bg-panel: rgba(17, 21, 28, 0.85); /* Transparent panel */
+  --bg-box: rgba(22, 28, 36, 0.9);   /* Slightly-less transparent box */
+  --bg-header: rgba(28, 35, 45, 0.9);
   --bg-btn: #2a3241;
-  --border-light: #2a3241;
+  --border-light: rgba(42, 50, 65, 0.5);
   --text-main: #FFFFFF;
   --text-muted: #8c94a4;
   --accent-primary: #ffa116;
@@ -108,6 +108,8 @@ if (!document.getElementById("codeHelp-root")) {
   height: 650px;
   max-height: 85vh;
   background: var(--bg-panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-light);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
