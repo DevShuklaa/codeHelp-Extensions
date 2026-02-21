@@ -189,6 +189,7 @@ if (!document.getElementById("codeHelp-root")) {
   flex-direction: column;
   gap: 16px;
   overflow: hidden;
+  min-height: 0;
 }
 
 .pm-box {
@@ -197,6 +198,7 @@ if (!document.getElementById("codeHelp-root")) {
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .pm-box-header {
@@ -231,15 +233,22 @@ if (!document.getElementById("codeHelp-root")) {
 
 #userCode {
   width: 100%;
-  flex: 1;
+  display: block;
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--text-main);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.5;
   resize: none;
   outline: none;
+  height: 20px;
+  transition: height 0.3s ease;
+  overflow: hidden;
+}
+#userCode:focus, #userCode:not(:placeholder-shown) {
+  height: 80px;
+  overflow-y: auto;
 }
 #userCode::placeholder {
   color: var(--text-muted);
@@ -251,6 +260,9 @@ if (!document.getElementById("codeHelp-root")) {
   font-family: monospace;
   font-size: 13px;
   line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: block;
 }
 
 #pm-footer {
@@ -389,18 +401,14 @@ input:checked + .slider:before {
 
   <div id="pm-body">
     <!-- Top Box (Question) -->
-    <div class="pm-box" style="flex: 1;">
-      <div class="pm-box-header">
-        <span class="box-title">Question</span>
-        <span class="box-badge">AI</span>
-      </div>
-      <div class="pm-box-content">
+    <div class="pm-box" style="flex: 0 0 auto;">
+      <div class="pm-box-content" style="padding: 12px 14px; display: block; min-height: unset; flex: unset;">
         <textarea id="userCode" placeholder="Ask your questions here..."></textarea>
       </div>
     </div>
 
     <!-- Bottom Box (Answer/Code) -->
-    <div class="pm-box" style="flex: 2;">
+    <div class="pm-box" style="flex: 1;">
       <div class="pm-box-header">
         <span class="box-title">Output</span>
       </div>
@@ -416,14 +424,14 @@ input:checked + .slider:before {
     <button id="btnLogin" class="btn-submit" style="width: 100%; font-size: 13px; padding: 10px;">Login</button>
   </div>
 
-  <div id="reviewView" style="display: none; flex: 1; padding: 16px; flex-direction: column; gap: 16px; overflow-y: auto;">
-    <div class="pm-box">
-      <div class="pm-box-header"><span class="box-title">Usage Stats</span></div>
-      <div class="pm-box-content output-container" id="statsOutput"></div>
-    </div>
-    <div class="pm-box">
+  <div id="reviewView" style="display: none; flex: 1; padding: 16px; flex-direction: column; gap: 16px; overflow-y: auto; overflow-x: hidden; min-height: 0; justify-content: flex-start;">
+    <div class="pm-box" style="flex: 0 0 auto; min-height: 250px;">
       <div class="pm-box-header"><span class="box-title">Weakness Analysis</span></div>
-      <div class="pm-box-content output-container" id="weaknessOutput"></div>
+      <div class="pm-box-content output-container" id="weaknessOutput" style="display: block; flex: unset; min-height: unset; overflow: visible;"></div>
+    </div>
+    <div class="pm-box" style="flex: 0 0 auto;">
+      <div class="pm-box-header"><span class="box-title">Usage Stats</span></div>
+      <div class="pm-box-content output-container" id="statsOutput" style="display: block; flex: unset; min-height: unset; overflow: visible;"></div>
     </div>
   </div>
 
@@ -480,7 +488,7 @@ input:checked + .slider:before {
       pmBody.style.display = "flex";
       pmFooter.style.display = "flex";
       pmTabs.style.display = "flex";
-      const userLogo = "👤"; 
+      const userLogo = "👤";
       shadow.querySelectorAll(".brand").forEach(b => b.innerHTML = `${userLogo} ${user}`);
       launcher.innerHTML = `${userLogo} ${user}`;
     } else {
@@ -585,7 +593,7 @@ input:checked + .slider:before {
 
   function getCurrentProblemId() {
     // Use the URL path to precisely uniquely identify the current problem
-    return window.location.pathname.replace(/[^a-zA-Z0-9]/g, '_'); 
+    return window.location.pathname.replace(/[^a-zA-Z0-9]/g, '_');
   }
 
   function trackUsage(type) {
@@ -602,7 +610,7 @@ input:checked + .slider:before {
     const eProb = localStorage.getItem(`codeHelp_explain_${prob}`) || 0;
     const hTotal = localStorage.getItem(`codeHelp_hints_total`) || 0;
     const hProb = localStorage.getItem(`codeHelp_hints_${prob}`) || 0;
-    
+
     shadow.getElementById("statsOutput").innerHTML = `
       <b style="color:var(--accent-primary)">Current Problem:</b><br/>
       • Explain used: ${eProb} time(s)<br/>
@@ -616,9 +624,31 @@ input:checked + .slider:before {
     if (Object.keys(weaknesses).length === 0) {
       shadow.getElementById("weaknessOutput").innerHTML = "No weakness data yet. Use Debug to analyze.";
     } else {
-      let html = "<b style='color:var(--warning)'>All-Time Weaknesses (Frequency):</b><br/>";
+      const latest = localStorage.getItem("codeHelp_latest_weakness") || "None identified yet";
+      const currentArray = JSON.parse(localStorage.getItem("codeHelp_current_weaknesses") || "[]");
+
+      let html = `<div style="margin-bottom: 12px; padding: 8px; background: rgba(255,161,22,0.1); border-left: 3px solid var(--accent-primary); border-radius: 4px;">
+        <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Latest Identified Weakness</span><br/>
+        <span style="color:var(--accent-primary); font-size:14px; font-weight:600;">${latest}</span>
+      </div>`;
+
+      if (currentArray.length > 0) {
+        html += "<b style='color:var(--accent-primary)'>Current Weaknesses (Last " + currentArray.length + "):</b><br/>";
+        currentArray.forEach((w, i) => {
+          html += `• ${i + 1}. ${w}<br/>`;
+        });
+        html += "<br/>";
+      }
+
+      let totalAllTime = 0;
+      for (const count of Object.values(weaknesses)) {
+        totalAllTime += count;
+      }
+
+      html += "<b style='color:var(--accent-primary)'>All-Time Weaknesses (Average):</b><br/>";
       for (const [w, count] of Object.entries(weaknesses)) {
-        html += `• ${w}: ${count} time(s)<br/>`;
+        let avg = Math.round((count / totalAllTime) * 100);
+        html += `• ${w}: ${avg}% (${count} times)<br/>`;
       }
       shadow.getElementById("weaknessOutput").innerHTML = html;
     }
@@ -652,19 +682,38 @@ input:checked + .slider:before {
       if (!res.ok) throw new Error("Server error");
 
       const data = await res.json();
-      left.innerText = data.response;
-      left.scrollTop = 0;
 
       if (mode === "debug") {
-        const txt = data.response.toLowerCase();
-        const keywords = ["loop", "array", "syntax", "null pointer", "recursion", "time complexity", "logic error", "variable"];
-        let found = [];
-        keywords.forEach(k => { if (txt.includes(k)) found.push(k); });
-        if (found.length === 0) found.push("general logic");
-        
+        const feedback = data.mistakesAndFeedback || "";
+        const perfect = data.perfectCode ? `\n\nPerfect Code:\n${data.perfectCode}` : "";
+        left.innerText = `Feedback:\n${feedback}${perfect}`;
+        left.scrollTop = 0;
+
+        const rawWeakness = data.userWeaknesses || "";
+        let weakness = rawWeakness.replace(/['"]+/g, '').trim();
+        if (!weakness) weakness = "General Logic";
+        else weakness = weakness.charAt(0).toUpperCase() + weakness.slice(1);
+
+        if (weakness.split(" ").length > 6 || weakness.length > 50) {
+          weakness = "General Logic";
+        }
+
+        // --- Current Weakness (Last 6) ---
+        let currentArray = JSON.parse(localStorage.getItem("codeHelp_current_weaknesses") || "[]");
+        currentArray.unshift(weakness);
+        if (currentArray.length > 6) {
+          currentArray.pop();
+        }
+        localStorage.setItem("codeHelp_current_weaknesses", JSON.stringify(currentArray));
+        localStorage.setItem("codeHelp_latest_weakness", weakness);
+
+        // --- All-time Weakness ---
         let wmap = JSON.parse(localStorage.getItem("codeHelp_weaknesses") || "{}");
-        found.forEach(f => { wmap[f] = (wmap[f] || 0) + 1; });
+        wmap[weakness] = (wmap[weakness] || 0) + 1;
         localStorage.setItem("codeHelp_weaknesses", JSON.stringify(wmap));
+      } else {
+        left.innerText = data.response;
+        left.scrollTop = 0;
       }
 
     } catch (err) {
@@ -722,7 +771,6 @@ input:checked + .slider:before {
 
       if (label === "review") {
         pmBody.style.display = "none";
-        pmFooter.style.display = "none";
         reviewView.style.display = "flex";
         updateReviewTab();
         return;
@@ -750,7 +798,7 @@ input:checked + .slider:before {
   /* Interview Mode */
   interviewToggle.addEventListener('change', (e) => {
     interviewMode = e.target.checked;
-    
+
     // Smoothly transition the solve button state without layout shift
     btnSolve.style.opacity = interviewMode ? "0.3" : "1";
     btnSolve.style.pointerEvents = interviewMode ? "none" : "auto";
