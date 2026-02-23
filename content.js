@@ -399,6 +399,7 @@ input:checked + .slider:before {
     <button>Debug</button>
     <button>Test</button>
     <button>Review</button>
+    <button>Settings</button>
   </div>
 
   <div id="pm-body">
@@ -434,6 +435,18 @@ input:checked + .slider:before {
     <div class="pm-box" style="flex: 0 0 auto;">
       <div class="pm-box-header"><span class="box-title">Usage Stats</span></div>
       <div class="pm-box-content output-container" id="statsOutput" style="display: block; flex: unset; min-height: unset; overflow: visible;"></div>
+    </div>
+  </div>
+
+  <div id="settingsView" style="display: none; flex: 1; padding: 16px; flex-direction: column; gap: 16px; overflow-y: auto; overflow-x: hidden; min-height: 0; justify-content: flex-start;">
+    <div class="pm-box" style="flex: 0 0 auto;">
+      <div class="pm-box-header"><span class="box-title">API Settings</span></div>
+      <div class="pm-box-content" style="display: block; flex: unset; min-height: unset; overflow: visible;">
+        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 8px;">Groq API Key (Optional)</label>
+        <input type="password" id="userApiKey" class="login-input" placeholder="gsk_..." style="margin-bottom: 12px; height: 36px; box-sizing: border-box;" />
+        <button id="btnSaveSettings" class="btn-submit" style="width: 100%; font-size: 13px; padding: 10px;">Save API Key</button>
+        <div id="settingsStatus" style="font-size: 12px; color: var(--success); margin-top: 8px; display: none;">Saved successfully!</div>
+      </div>
     </div>
   </div>
 
@@ -483,6 +496,21 @@ input:checked + .slider:before {
   const btnLogin = shadow.getElementById("btnLogin");
   const loginUsername = shadow.getElementById("loginUsername");
 
+  const settingsView = shadow.getElementById("settingsView");
+  const userApiKey = shadow.getElementById("userApiKey");
+  const btnSaveSettings = shadow.getElementById("btnSaveSettings");
+  const settingsStatus = shadow.getElementById("settingsStatus");
+
+  if (userApiKey) userApiKey.value = localStorage.getItem("codeHelp_apiKey") || "";
+
+  if (btnSaveSettings) {
+    btnSaveSettings.onclick = () => {
+      localStorage.setItem("codeHelp_apiKey", userApiKey.value.trim());
+      settingsStatus.style.display = "block";
+      setTimeout(() => { settingsStatus.style.display = "none"; }, 2000);
+    };
+  }
+
   function checkLogin() {
     const user = localStorage.getItem("codeHelp_user");
     if (user) {
@@ -498,6 +526,7 @@ input:checked + .slider:before {
       pmBody.style.display = "none";
       pmFooter.style.display = "none";
       reviewView.style.display = "none";
+      if (settingsView) settingsView.style.display = "none";
       pmTabs.style.display = "none";
       shadow.querySelectorAll(".brand").forEach(b => b.innerHTML = `🧠 codeHelp`);
       launcher.innerHTML = `🧠 codeHelp`;
@@ -676,7 +705,8 @@ input:checked + .slider:before {
           problem: window.getcodeHelpProblem(),
           language: "Java",
           code: userCode.value || "",
-          outputLang: explainLang === "hi" ? "hinglish" : "english"
+          outputLang: explainLang === "hi" ? "hinglish" : "english",
+          apiKey: localStorage.getItem("codeHelp_apiKey") || undefined
         })
       });
 
@@ -774,12 +804,19 @@ input:checked + .slider:before {
       if (label === "review") {
         pmBody.style.display = "none";
         reviewView.style.display = "flex";
+        if (settingsView) settingsView.style.display = "none";
         updateReviewTab();
+        return;
+      } else if (label === "settings") {
+        pmBody.style.display = "none";
+        reviewView.style.display = "none";
+        if (settingsView) settingsView.style.display = "flex";
         return;
       } else {
         pmBody.style.display = "flex";
         pmFooter.style.display = "flex";
         reviewView.style.display = "none";
+        if (settingsView) settingsView.style.display = "none";
       }
 
       if (label === "test") callcodeHelp("test");
