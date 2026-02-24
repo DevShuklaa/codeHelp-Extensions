@@ -136,13 +136,14 @@ if (!document.getElementById("codeHelp-root")) {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: none;
 }
 .controls-right {
   display: flex;
   gap: 12px;
   align-items: center;
 }
-#pm-mic, #pm-close {
+#pm-mic, #pm-close, #pm-info, #pm-settings {
   background: none;
   border: none;
   cursor: pointer;
@@ -150,7 +151,7 @@ if (!document.getElementById("codeHelp-root")) {
   font-size: 16px;
   transition: var(--transition);
 }
-#pm-mic:hover { color: var(--text-main); }
+#pm-mic:hover, #pm-info:hover, #pm-settings:hover { color: var(--text-main); }
 #pm-close:hover { color: #ef4444; }
 
 #pm-tabs {
@@ -385,9 +386,12 @@ input:checked + .slider:before {
 
 <div id="panel">
   <!-- Top Header -->
-  <div id="pm-header">
+  <div id="pm-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; width: 100%;">
     <div class="brand">🧠 codeHelp</div>
-    <div class="controls-right">
+    
+    <div class="controls-right" style="gap: 8px; flex: none;">
+      <button id="pm-settings" title="API Key Settings">⚙️</button>
+      <button id="pm-info" title="Info / Manual">ⓘ</button>
       <button id="pm-close" title="Close Panel">✕</button>
     </div>
   </div>
@@ -399,7 +403,6 @@ input:checked + .slider:before {
     <button>Debug</button>
     <button>Test</button>
     <button>Review</button>
-    <button>Settings</button>
   </div>
 
   <div id="pm-body">
@@ -440,12 +443,33 @@ input:checked + .slider:before {
 
   <div id="settingsView" style="display: none; flex: 1; padding: 16px; flex-direction: column; gap: 16px; overflow-y: auto; overflow-x: hidden; min-height: 0; justify-content: flex-start;">
     <div class="pm-box" style="flex: 0 0 auto;">
-      <div class="pm-box-header"><span class="box-title">API Settings</span></div>
+      <div class="pm-box-header"><span class="box-title">API Key Configuration</span></div>
       <div class="pm-box-content" style="display: block; flex: unset; min-height: unset; overflow: visible;">
-        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 8px;">Groq API Key (Optional)</label>
+        <label style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 8px;">Groq API Key</label>
         <input type="password" id="userApiKey" class="login-input" placeholder="gsk_..." style="margin-bottom: 12px; height: 36px; box-sizing: border-box;" />
+        <a href="https://console.groq.com/keys" target="_blank" style="font-size: 11px; color: var(--accent-primary); text-decoration: none; opacity: 0.9; margin-bottom: 12px; display: block;">Get your API Key Here</a>
         <button id="btnSaveSettings" class="btn-submit" style="width: 100%; font-size: 13px; padding: 10px;">Save API Key</button>
         <div id="settingsStatus" style="font-size: 12px; color: var(--success); margin-top: 8px; display: none;">Saved successfully!</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="infoView" style="display: none; flex: 1; padding: 16px; flex-direction: column; gap: 16px; overflow-y: auto; overflow-x: hidden; min-height: 0; justify-content: flex-start;">
+    <div class="pm-box" style="flex: 0 0 auto;">
+      <div class="pm-box-header"><span class="box-title">About codeHelp & API Key</span></div>
+      <div class="pm-box-content" style="display: block; flex: unset; min-height: unset; overflow: visible; font-size: 12px; line-height: 1.5; color: var(--text-muted);">
+        <b style="color: var(--text-main);">What is codeHelp?</b><br/>
+        codeHelp is your AI-powered companion for competitive programming. It provides logical hints, deep explanations, and strict code debugging directly on LeetCode, HackerRank, and CodeChef.<br/><br/>
+        
+        <b style="color: var(--text-main);">Why add your own Groq API Key?</b><br/>
+        Providing your own API key completely removes rate limits and reduces the load on the shared backend key, resulting in faster and more reliable responses.<br/><br/>
+        
+        <b style="color: var(--text-main);">How to obtain and use the API Key:</b><br/>
+        1. Click the ⚙️ gear icon in the header.<br/>
+        2. Click the "Get your API Key Here" link.<br/>
+        3. Sign up or log in to Groq Console and create an API Key.<br/>
+        4. Paste it into the input box and click "Save API Key".<br/>
+        <i>Your key is stored securely in your browser's local storage and only used to ping the AI models directly.</i>
       </div>
     </div>
   </div>
@@ -497,9 +521,12 @@ input:checked + .slider:before {
   const loginUsername = shadow.getElementById("loginUsername");
 
   const settingsView = shadow.getElementById("settingsView");
+  const infoView = shadow.getElementById("infoView");
   const userApiKey = shadow.getElementById("userApiKey");
   const btnSaveSettings = shadow.getElementById("btnSaveSettings");
   const settingsStatus = shadow.getElementById("settingsStatus");
+  const btnInfo = shadow.getElementById("pm-info");
+  const btnSettings = shadow.getElementById("pm-settings");
 
   if (userApiKey) userApiKey.value = localStorage.getItem("codeHelp_apiKey") || "";
 
@@ -510,6 +537,22 @@ input:checked + .slider:before {
       setTimeout(() => { settingsStatus.style.display = "none"; }, 2000);
     };
   }
+
+  btnInfo.onclick = () => {
+    shadow.querySelectorAll("#pm-tabs button").forEach(b => b.classList.remove("active"));
+    pmBody.style.display = "none";
+    reviewView.style.display = "none";
+    settingsView.style.display = "none";
+    infoView.style.display = "flex";
+  };
+
+  btnSettings.onclick = () => {
+    shadow.querySelectorAll("#pm-tabs button").forEach(b => b.classList.remove("active"));
+    pmBody.style.display = "none";
+    reviewView.style.display = "none";
+    infoView.style.display = "none";
+    settingsView.style.display = "flex";
+  };
 
   function checkLogin() {
     const user = localStorage.getItem("codeHelp_user");
@@ -526,6 +569,7 @@ input:checked + .slider:before {
       pmBody.style.display = "none";
       pmFooter.style.display = "none";
       reviewView.style.display = "none";
+      if (infoView) infoView.style.display = "none";
       if (settingsView) settingsView.style.display = "none";
       pmTabs.style.display = "none";
       shadow.querySelectorAll(".brand").forEach(b => b.innerHTML = `🧠 codeHelp`);
@@ -543,7 +587,7 @@ input:checked + .slider:before {
 
   let interviewMode = false;
 
-  const codeHelp_API = "https://codehelp-backened-7368.onrender.com/api/ai";
+  const codeHelp_API = "https://codehelp-backened.onrender.com/api/ai";
 
   const ENDPOINTS = {
     explain: "/explain",
@@ -804,18 +848,15 @@ input:checked + .slider:before {
       if (label === "review") {
         pmBody.style.display = "none";
         reviewView.style.display = "flex";
+        if (infoView) infoView.style.display = "none";
         if (settingsView) settingsView.style.display = "none";
         updateReviewTab();
-        return;
-      } else if (label === "settings") {
-        pmBody.style.display = "none";
-        reviewView.style.display = "none";
-        if (settingsView) settingsView.style.display = "flex";
         return;
       } else {
         pmBody.style.display = "flex";
         pmFooter.style.display = "flex";
         reviewView.style.display = "none";
+        if (infoView) infoView.style.display = "none";
         if (settingsView) settingsView.style.display = "none";
       }
 
