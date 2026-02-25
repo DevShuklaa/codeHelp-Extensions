@@ -35,10 +35,10 @@ if (!document.getElementById("codeHelp-root")) {
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :host {
-  --bg-main: #0B101A;
-  --bg-panel: rgba(17, 21, 28, 0.85); /* Transparent panel */
-  --bg-box: rgba(22, 28, 36, 0.9);   /* Slightly-less transparent box */
-  --bg-header: rgba(28, 35, 45, 0.9);
+  --bg-main: rgba(11, 16, 26, 0.1);
+  --bg-panel: rgba(17, 21, 28, 0.2); /* Transparent panel */
+  --bg-box: rgba(22, 28, 36, 0.3);   /* Slightly-less transparent box */
+  --bg-header: rgba(28, 35, 45, 0.4);
   --bg-btn: #2a3241;
   --border-light: rgba(42, 50, 65, 0.5);
   --text-main: #FFFFFF;
